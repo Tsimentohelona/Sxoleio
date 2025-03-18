@@ -18,8 +18,8 @@ if (!isset($_SESSION['userId'])) {
 		$title = $_POST['title'];
 		$keimeno = $_POST['keimeno'];
 		$time = $_POST['time'];
-		//$rolos = $_POST['rolos'];
-		$userIdForUpdate = $_SESSION['userId'];
+		
+		$author_id = $_SESSION['userId'];
 
 		//$sql = "UPDATE users SET email='$email', onoma = '$firstName', eponimo='$lastName', rolos='$rolos' WHERE user_id = userIdForUpdate";
 
@@ -37,25 +37,67 @@ if (!isset($_SESSION['userId'])) {
 			echo "sfalma";
 		}
 	}
+}
+
+
+$target_dir = "uploads/";
+$target_file = $target_dir . $_FILES;
+$uploadOk = 1;
+$imageFileType = strtolower(pathinfo($target_file,PATHINFO_EXTENSION));
 
 
 
+$check = getimagesize($_FILES);
+if($ckeck !== false) {
+echo "File is an image - " .$check["mime"] . ".";
+$uploadOk = 1;
+} else {
+echo "File is not an image.";
+$uploadOk = 0;
+}
+
+if (file_exists($target_file)) {
+echo "Sorry, file already exists.";
+$uploadOk = 0;
+}
+
+if ($_FILES["postImg"]["size"] > 500000) {
+echo "Sorry, your file is too large.";
+$uploadOk = 0;
+}
+
+if($imageFileType != "jpg" && $imageFileType != "png" && $imageFileType != "jpeg" && $imageFileType != "gif"){
+echo "Sorry, only JPG, JPEG, PNG & GIF files are allowed.";
+$uploadOk = 0;
+}
 
 
 
-	$userId = $_SESSION['userId'];
-	$stmt = $conn->prepare("SELECT * FROM users WHERE user_id = :userId");
+$sql = "INSERT INFO posts (author_id, title, content, imgurl, publish_at) VALUES (author_id,'$title','$content',$target_file','$date')";
 
-    $stmt->bindParam(':userId', $userId, PDO::PARAM_STR);
+if($conn->exec($sql)){
+if ($uploadOk == 0) {
+echo "Sorry, your file was not uploaded.";
 
-    $stmt->execute();
-
-    $result = $stmt->fetch(PDO::FETCH_ASSOC);
+} else {
+if (move_uploaded_file($_FILES["postImg"]["tmp_name"], $target_file)) {
+echo "The file ". htmlspecialchars($_FILES["postImg"]["name"]). " has been uploaded.";
+} else {
+echo "Sorry, there was an error uploading your file.";
+} 
+}
+}
 
 ?>
 
+<div class="alert-primary" role="alert">
+Effrafikate epitixos!
+
+
+
+
 <div class="container">
-	<form method="POST" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>">
+	<form method="POST" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" enctype="multipart/for-data">
 	  <div class="mb-3">
 	    <label for="exampleInputKeimeno1" class="form-label">Title</label>
 	    <input type="text" class="form-control" id="exampleInputTitle1" aria-describedby="titleHelp" name="title" value="">
@@ -67,6 +109,9 @@ if (!isset($_SESSION['userId'])) {
 	   <div class="mb-3">
 	    <label for="exampleInputDate" class="form-label">Date</label>
 	    <input type="date" class="form-control" id="exampleInputDate" name="Date" value="">
+	   <div class="mb-3">
+	    <label for="exampleInputFile" class="form-label">Date</label>
+	    <input type="file" class="form-control" id="exampleInputFile" name="File" value="">
 	  </div>
 	  <input type="Post" name="BlogPostBtn" class="btn btn-primary" value="Post">
 	</form>
@@ -75,6 +120,6 @@ if (!isset($_SESSION['userId'])) {
 
 <?php 
 
-}
+
 
 include("footer.php");
